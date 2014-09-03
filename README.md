@@ -3,7 +3,8 @@ QtLibSmtp
 
 A Smtp library for Qt5
 
-Exemple SSL Auth
+Exemple SSL Auth :
+==================
 
 ```
 libSmtp = new LibSmtp("smtp.gmail.com",465,"<you user name>", "<your password>", 30000, true);
@@ -19,7 +20,7 @@ libSmtp->setBody("Hello, this is a test..");
 ```
 
 No authentification :
----------------------
+======================
 
 ```
 libSmtp = new LibSmtp("smtp.gmail.com",465);
@@ -32,3 +33,7 @@ libSmtp->setRcpt("<Anyone email>");
 ibSmtp->setSubject("Un email de test C++.");
 libSmtp->setBody("Hello, this is a test.");
 ```
+
+ToDo :
+- [ ] Better Readme
+- [ ] More exemples
