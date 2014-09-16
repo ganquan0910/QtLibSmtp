@@ -34,6 +34,8 @@ ibSmtp->setSubject("Un email de test C++.");
 libSmtp->setBody("Hello, this is a test.");
 ```
 
+Thank to [Raivis Strogonovs](http://morf.lv/modules.php?name=tutorials&lasit=20) for his snippet and his help.
+
 ToDo :
 - [ ] Better Readme
 - [ ] More exemples
