@@ -23,7 +23,7 @@ No authentification :
 ======================
 
 ```
-libSmtp = new LibSmtp("smtp.gmail.com",465);
+libSmtp = new LibSmtp("smtp.orange.com",25);
 libSmtp->setAuth(false);
 libSmtp->setTextMethod(LibSmtp::Html);
 ibSmtp->setFriendlyFrom("You");
