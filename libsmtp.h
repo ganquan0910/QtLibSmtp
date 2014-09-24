@@ -31,7 +31,8 @@ private:
     QString getMessage();
     // Mail send informations
     QString from;
-    QString rcpt;
+    QStringList rcpt;
+    int rcptCounter;
     QString subject;
     QString body;
     QStringList files;
@@ -92,7 +93,7 @@ public:
     // -- Getters --
 
     QString getFrom();
-    QString getRcpt();
+    QStringList getRcpt();
     QString getSubject();
     QString getBody();
     int getPort();

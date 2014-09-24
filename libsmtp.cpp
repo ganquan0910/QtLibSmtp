@@ -25,6 +25,8 @@ LibSmtp::LibSmtp(const QString &host, int port, const QString &user, const QStri
         connect(tcpSocket, SIGNAL(disconnected()), this,SLOT(disconnected()));
     }
 
+    // set/reset rcpt counter
+    rcptCounter = 0;
 }
 LibSmtp::~LibSmtp()
 {
@@ -53,7 +55,10 @@ void LibSmtp::sendMail()
     {
         message.append(this->getFriendlyRcpt());
     }
-    message.append("<" + this->getRcpt() + ">");
+    foreach(QString sRcpt, this->getRcpt()) {
+        message.append("<" + sRcpt + ">");
+    }
+//    message.append("<" + this->getRcpt() + ">");
     message.append(this->getCrlf());
     // -- From
     message.append("From:");
@@ -75,7 +80,8 @@ void LibSmtp::sendMail()
     if(this->getTextMethod() == LibSmtp::Html)
     {
         message.append("Content-Type: multipart/alternative;");
-    } else
+    }
+    else
     {
         message.append("Content-Type: multipart/mixed;");
     }
@@ -84,9 +90,22 @@ void LibSmtp::sendMail()
     message.append(this->getCrlf(2));
     message.append(this->getBoundaries());
 
+    // -- body Plain/Text
+    message.append("Content-Type:text/plain; ");
+    message.append("charset=UTF-8");
+    message.append(this->getCrlf());
+    message.append("Content-Transfer-Encoding: quoted-printable");
+    message.append(this->getCrlf(2));
+
+    message.append(this->getBody().remove(QRegExp("<[^>]*>")));
+    message.append(this->getCrlf(2));
+    message.append(this->getBoundaries());
+
+
+    // -- body Plain/Html
     if(this->getTextMethod() == LibSmtp::Html)
     {
-        message.append("Content-Type: text/html; ");
+        message.append("Content-Type:text/html; ");
         message.append("charset=UTF-8");
         message.append(this->getCrlf());
         message.append("Content-Transfer-Encoding: quoted-printable");
@@ -100,25 +119,13 @@ void LibSmtp::sendMail()
             message.append(this->getCrlf());
             message.append("<body>");
                 message.append(this->getCrlf());
-                message.append(this->getBody());
+                message.append(this->getBody().replace("\n","<br>"));
                 message.append(this->getCrlf());
             message.append("</body>");
             message.append(this->getCrlf());
         message.append("</html>");
         message.append(this->getCrlf(2));
-
-        message.append(this->getBoundaries());
     }
-
-    message.append("Content-Type: text/plain; ");
-    message.append("charset=UTF-8");
-    message.append(this->getCrlf());
-    message.append("Content-Transfer-Encoding: quoted-printable");
-    message.append(this->getCrlf(2));
-
-    // -- body Plain/Text
-    message.append(this->getBody().remove(QRegExp("<[^>]*>")));
-    message.append(this->getCrlf(2));
 
     if(!this->files.empty())
     {
@@ -269,7 +276,6 @@ void LibSmtp::readyRead()
         // HELO response was okay (well, it has to be)
 
         //Apperantly for Google it is mandatory to have MAIL FROM and RCPT email formated the following way -> <email@gmail.com>
-        qDebug() << "MAIL FROM:<" << from << ">";
         *t << "MAIL FROM:<" << from << ">\r\n";
         t->flush();
         state = Rcpt;
@@ -277,9 +283,15 @@ void LibSmtp::readyRead()
     else if ( state == Rcpt && responseLine == "250" )
     {
         //Apperantly for Google it is mandatory to have MAIL FROM and RCPT email formated the following way -> <email@gmail.com>
-        *t << "RCPT TO:<" << rcpt << ">\r\n"; //r
+        *t << "RCPT TO:<" << rcpt.at(rcptCounter) << ">\r\n";
+        rcptCounter++;
+//        *t << "RCPT TO:<" << rcpt << ">\r\n";
         t->flush();
-        state = Data;
+
+        if(rcptCounter >= rcpt.length())
+            state = Data;
+        else
+            state = Rcpt;
     }
     else if ( state == Data && responseLine == "250" )
     {
@@ -326,7 +338,7 @@ QString LibSmtp::getFrom()
 {
     return this->from;
 }
-QString LibSmtp::getRcpt()
+QStringList LibSmtp::getRcpt()
 {
     return this->rcpt;
 }
@@ -419,7 +431,7 @@ void LibSmtp::setFrom(QString from)
 }
 void LibSmtp::setRcpt(QString rcpt)
 {
-    this->rcpt = rcpt;
+    this->rcpt << rcpt;
 }
 void LibSmtp::setSubject(QString subject)
 {
@@ -504,4 +516,3 @@ QString LibSmtp::getCrlf(int times)
     s_crlf = s_crlf.repeated(times);
     return s_crlf;
 }
-
